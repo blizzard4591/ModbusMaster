@@ -784,13 +784,13 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
     }
 
     if (_serial->available())
-    {
+    { uint8_t ch;
 #if __MODBUSMASTER_DEBUG__
       digitalWrite(__MODBUSMASTER_DEBUG_PIN_A__, true);
 #endif
-      int data = _serial->read();
+      uint8_t data = _serial->read();
 
-      if (data != -1)
+      if ((ch == _u8MBSlave) || u16ModbusADUSize)
       {
         u8ModbusADU[u16ModbusADUSize++] = data;
         u8BytesLeft--;
@@ -816,13 +816,6 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
     // evaluate slave ID, function code once enough bytes have been read
     if (u16ModbusADUSize == 5)
     {
-      // verify response is for correct Modbus slave
-      if (u8ModbusADU[0] != _u8MBSlave)
-      {
-        u8MBStatus = ku8MBInvalidSlaveID;
-        break;
-      }
-      
       // verify response is for correct Modbus function code (mask exception bit 7)
       if ((u8ModbusADU[1] & 0x7F) != u8MBFunction)
       {
